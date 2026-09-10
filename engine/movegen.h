@@ -9,10 +9,10 @@
 
 class MoveGen {
 public:
-    void Pawn(const Position& position, Color color, std::vector<Move>& moves);
-    void Knight(const Position& position, Color color, std::vector<Move>& moves);
-    void Bishop(const Position& position, Color color, std::vector<Move>& moves);
-    void Queen(const Position& position, Color color, std::vector<Move>& moves);
-    void Rook(const Position& position, Color color, std::vector<Move>& moves);
-    void King(const Position& position, Color color, std::vector<Move>& moves);
+    void Pawn(Position& position, Color color, std::vector<Move>& moves);
+    void Knight(Position& position, Color color, std::vector<Move>& moves);
+    void Bishop(Position& position, Color color, std::vector<Move>& moves);
+    void Queen(Position& position, Color color, std::vector<Move>& moves);
+    void Rook(Position& position, Color color, std::vector<Move>& moves);
+    void King(Position& position, Color color, std::vector<Move>& moves);
 };
