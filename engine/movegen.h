@@ -1,18 +1,19 @@
 #pragma once
 
-#include <cstdint>
-#include "position.h"
 #include "move.h"
+#include "position.h"
+#include "utils.cpp"
+#include <cstdint>
 #include <vector>
 
 #define u64 uint64_t
 
 class MoveGen {
-public:
-    void Pawn(Position& position, Color color, std::vector<Move>& moves);
-    void Knight(Position& position, Color color, std::vector<Move>& moves);
-    void Bishop(Position& position, Color color, std::vector<Move>& moves);
-    void Queen(Position& position, Color color, std::vector<Move>& moves);
-    void Rook(Position& position, Color color, std::vector<Move>& moves);
-    void King(Position& position, Color color, std::vector<Move>& moves);
+  public:
+    void GenPsuedoPawn(Position &position, Color color, std::vector<Move> &PsuedoLegalmoves);
+    void GenPsuedoKnight(Position &position, Color color, std::vector<Move> &PsuedoLegalmoves);
+    void GenPsuedoBishop(Position &position, Color color, std::vector<Move> &PsuedoLegalmoves);
+    void GenPsuedoQueen(Position &position, Color color, std::vector<Move> &PsuedoLegalmoves);
+    void GenPsuedoRook(Position &position, Color color, std::vector<Move> &PsuedoLegalmoves);
+    void GenPsuedoKing(Position &position, Color color, std::vector<Move> &PsuedoLegalmoves);
 };

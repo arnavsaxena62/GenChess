@@ -5,8 +5,7 @@ using namespace std;
 
 #define u64 uint64_t
 
-enum Square : uint64_t
-{
+enum Square : uint64_t {
     A1 = 1ULL << 0,
     B1 = 1ULL << 1,
     C1 = 1ULL << 2,
@@ -26,52 +25,39 @@ enum Square : uint64_t
     H2 = 1ULL << 15,
 };
 
-enum Color : int
-{
-    WHITE,
-    BLACK
-};
+enum Color : int { WHITE, BLACK };
 
-class Position
-{
+class Position {
   public:
-    u64 whitePawn=0;
-    u64 whiteKnight=0;
-    u64 whiteRook=0;
-    u64 whiteBishop=0;
-    u64 whiteQueen=0;
-    u64 whiteKing=0;
+    u64 whitePawn = 0;
+    u64 whiteKnight = 0;
+    u64 whiteRook = 0;
+    u64 whiteBishop = 0;
+    u64 whiteQueen = 0;
+    u64 whiteKing = 0;
 
-    u64 blackPawn=0;
-    u64 blackKnight=0;
-    u64 blackRook=0;
-    u64 blackBishop=0;
-    u64 blackQueen=0;
-    u64 blackKing=0;
+    u64 blackPawn = 0;
+    u64 blackKnight = 0;
+    u64 blackRook = 0;
+    u64 blackBishop = 0;
+    u64 blackQueen = 0;
+    u64 blackKing = 0;
 
-    u64 black()
-    {
+    u64 black() {
         return blackPawn | blackKnight | blackQueen | blackRook | blackBishop | blackKing;
     }
 
-    u64 white()
-    {
+    u64 white() {
         return whitePawn | whiteKnight | whiteQueen | whiteRook | whiteBishop | whiteKing;
     }
 
-    u64 occupied()
-    {
-        return black() | white();
-    }
+    u64 occupied() { return black() | white(); }
 
-    void display()
-    {
-        for (int rank = 7; rank >= 0; rank--)
-        {
+    void display() {
+        for (int rank = 7; rank >= 0; rank--) {
             cout << rank + 1 << " ";
 
-            for (int file = 0; file < 8; file++)
-            {
+            for (int file = 0; file < 8; file++) {
                 int square = rank * 8 + file;
                 u64 bit = 1ULL << square;
 
