@@ -13,4 +13,4 @@ vector<int> BBtoSq(u64 bb) {
     }
 }
 
-u64 squareBB(int rank, int file) { return 1ULL << (rank * 8 + file); }
+u64 SqtoBB(int rank, int file) { return 1ULL << (rank * 8 + file); }

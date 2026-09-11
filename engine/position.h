@@ -53,6 +53,13 @@ class Position {
 
     u64 occupied() { return black() | white(); }
 
+    u64 own(Color c) {
+        if (c == WHITE)
+            return white();
+
+        return black();
+    }
+
     void display() {
         for (int rank = 7; rank >= 0; rank--) {
             cout << rank + 1 << " ";

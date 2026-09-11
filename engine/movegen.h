@@ -10,10 +10,10 @@
 
 class MoveGen {
   public:
-    void GenPsuedoPawn(Position &position, Color color, std::vector<Move> &PsuedoLegalmoves);
-    void GenPsuedoKnight(Position &position, Color color, std::vector<Move> &PsuedoLegalmoves);
-    void GenPsuedoBishop(Position &position, Color color, std::vector<Move> &PsuedoLegalmoves);
-    void GenPsuedoQueen(Position &position, Color color, std::vector<Move> &PsuedoLegalmoves);
-    void GenPsuedoRook(Position &position, Color color, std::vector<Move> &PsuedoLegalmoves);
-    void GenPsuedoKing(Position &position, Color color, std::vector<Move> &PsuedoLegalmoves);
+    void GenPsuedoPawn(Position &position, Color color, vector<Move> &PsuedoLegalmoves);
+    void GenPsuedoKnight(Position &position, Color color, vector<Move> &PsuedoLegalmoves);
+    void GenPsuedoBishop(Position &position, Color color, vector<Move> &PsuedoLegalmoves);
+    void GenPsuedoQueen(Position &position, Color color, vector<Move> &PsuedoLegalmoves);
+    void GenPsuedoRook(Position &position, Color color, vector<Move> &PsuedoLegalmoves);
+    void GenPsuedoKing(Position &position, Color color, vector<Move> &PsuedoLegalmoves);
 };
