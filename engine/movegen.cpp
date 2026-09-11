@@ -3,9 +3,35 @@
 using namespace std;
 #define u64 uint64_t
 
+
+void MoveGen::GenRay(Position &position, Color color, int square, int rankDirection,
+                     int fileDirection, vector<Move> &moves) {
+
+    int rank = square / 8;
+    int file = square % 8;
+
+    int futureRank = rank + rankDirection;
+    int futureFile = file + fileDirection;
+
+    while (futureRank >= 0 && futureRank < 8 && futureFile >= 0 && futureFile < 8) {
+
+        u64 target = SqtoBB(futureRank, futureFile);
+
+        if (target & position.own(color))
+            break;
+
+        moves.emplace_back(Move{square, futureRank * 8 + futureFile});
+
+        if (target & position.own(color == WHITE ? BLACK : WHITE))
+            break;
+
+        futureRank += rankDirection;
+        futureFile += fileDirection;
+    }
+}
+
 void MoveGen::GenPsuedoPawn(Position &position, Color color, vector<Move> &PsuedoLegalmoves) {
     vector<int> squares;
-
     int direction;
     int startingRank;
 
@@ -19,49 +45,48 @@ void MoveGen::GenPsuedoPawn(Position &position, Color color, vector<Move> &Psued
         startingRank = 6;
     }
 
-    for (auto i : squares) {
-        int rank = i % 8;
-        int file = i / 8;
+    u64 enemy = position.own(color == WHITE ? BLACK : WHITE);
 
-        int futureRank = rank;
-        int futureFile = file + direction;
+    for (auto square : squares) {
+        int rank = square / 8;
+        int file = square % 8;
 
-        if (futureFile >= 0 && futureFile < 8 &&
+        int futureRank = rank + direction;
+        int futureFile = file;
+
+        if (futureRank >= 0 && futureRank < 8 &&
             !(position.occupied() & SqtoBB(futureRank, futureFile))) {
 
-            PsuedoLegalmoves.emplace_back(Move{i, futureFile * 8 + futureRank});
+            PsuedoLegalmoves.emplace_back(Move{square, futureRank * 8 + futureFile});
 
-            if (file == startingRank) {
+            if (rank == startingRank) {
 
-                futureFile = file + 2 * direction;
+                int futureRank2 = rank + 2 * direction;
 
-                if (!(position.occupied() & SqtoBB(futureRank, futureFile))) {
+                if (!(position.occupied() & SqtoBB(futureRank2, futureFile))) {
 
-                    PsuedoLegalmoves.emplace_back(Move{i, futureFile * 8 + futureRank});
+                    PsuedoLegalmoves.emplace_back(Move{square, futureRank2 * 8 + futureFile});
                 }
             }
         }
 
+        // Capture toward file + 1
+        futureRank = rank + direction;
+        futureFile = file + 1;
 
-        u64 enemy = position.own(color == WHITE ? BLACK : WHITE);
-
-        // Capture toward rank + 1
-        futureRank = rank + 1;
-        futureFile = file + direction;
-
-        if (futureRank < 8 && futureFile >= 0 && futureFile < 8 &&
+        if (futureRank >= 0 && futureRank < 8 && futureFile < 8 &&
             (enemy & SqtoBB(futureRank, futureFile))) {
 
-            PsuedoLegalmoves.emplace_back(Move{i, futureFile * 8 + futureRank});
+            PsuedoLegalmoves.emplace_back(Move{square, futureRank * 8 + futureFile});
         }
 
-        // Capture toward rank - 1
-        futureRank = rank - 1;
+        // Capture toward file - 1
+        futureFile = file - 1;
 
-        if (futureRank >= 0 && futureFile >= 0 && futureFile < 8 &&
+        if (futureRank >= 0 && futureRank < 8 && futureFile >= 0 &&
             (enemy & SqtoBB(futureRank, futureFile))) {
 
-            PsuedoLegalmoves.emplace_back(Move{i, futureFile * 8 + futureRank});
+            PsuedoLegalmoves.emplace_back(Move{square, futureRank * 8 + futureFile});
         }
     }
 }
@@ -70,23 +95,19 @@ void MoveGen::GenPsuedoKnight(Position &position, Color color, vector<Move> &Psu
     vector<int> squares =
         (color == WHITE ? BBtoSq(position.whiteKnight) : BBtoSq(position.blackKnight));
 
-    int Knightmoves[8][2] = {{2, 1}, {2, -1}, {1, -2}, {-1, -2},
-                             {1, 2}, {-1, 2}, {-2, 1}, {-2, -1}};
+    static const int KnightOffsets[8][2] = {{2, 1}, {2, -1}, {1, -2}, {-1, -2},
+                                            {1, 2}, {-1, 2}, {-2, 1}, {-2, -1}};
 
-    vector<Move> PsuedoLegalMoves = {};
+    for (auto square : squares) {
+        int rank = square / 8;
+        int file = square % 8;
 
-    for (auto &&i : squares) {
-        int rank = i % 8;
-        int file = i / 8;
-
-        vector<tuple<int, int>> movesAvailable = {};
-
-        for (int i = 0; i < 8; i++) {
-            int futureRank = rank - Knightmoves[i][0];
-            int futureFile = file - Knightmoves[i][1];
+        for (auto &offset : KnightOffsets) {
+            int futureRank = rank + offset[0];
+            int futureFile = file + offset[1];
             if (futureFile >= 0 && futureFile < 8 && futureRank >= 0 && futureRank < 8 &&
                 !(position.own(color) & SqtoBB(futureRank, futureFile))) {
-                PsuedoLegalMoves.emplace_back(Move{i, 8 * futureRank + futureFile});
+                PsuedoLegalmoves.emplace_back(Move{square, 8 * futureRank + futureFile});
             }
         }
     }
@@ -96,25 +117,75 @@ void MoveGen::GenPsuedoKing(Position &position, Color color, vector<Move> &Psued
     vector<int> squares =
         (color == WHITE ? BBtoSq(position.whiteKing) : BBtoSq(position.blackKing));
 
-    int Knightmoves[8][2] = {{1, 1}, {1, 0}, {1, -1}, {0, 1}, {0, -1}, {-1, 1}, {-1, 0}, {-1, -1}};
+    static const int KingOffsets[8][2] = {{1, 1},  {1, 0},  {1, -1}, {0, 1},
+                                          {0, -1}, {-1, 1}, {-1, 0}, {-1, -1}};
 
-    for (auto &&i : squares) {
-        int rank = i % 8;
-        int file = i / 8;
+    for (auto square : squares) {
+        int rank = square / 8;
+        int file = square % 8;
 
-        for (int i = 0; i < 8; i++) {
-            int futureRank = rank - Knightmoves[i][0];
-            int futureFile = file - Knightmoves[i][1];
+        for (auto &offset : KingOffsets) {
+            int futureRank = rank + offset[0];
+            int futureFile = file + offset[1];
             if (futureFile >= 0 && futureFile < 8 && futureRank >= 0 && futureRank < 8 &&
                 !(position.own(color) & SqtoBB(futureRank, futureFile))) {
-                PsuedoLegalmoves.emplace_back(Move{i, 8 * futureRank + futureFile});
+                PsuedoLegalmoves.emplace_back(Move{square, 8 * futureRank + futureFile});
             }
         }
     }
 }
 
-void MoveGen::GenPsuedoBishop(Position &position, Color color, vector<Move> &PsuedoLegalmoves) {}
+void MoveGen::GenPsuedoBishop(Position &position, Color color, vector<Move> &PsuedoLegalmoves) {
+    vector<int> squares;
 
-void MoveGen::GenPsuedoQueen(Position &position, Color color, vector<Move> &PsuedoLegalmoves) {}
+    if (color == WHITE) {
+        squares = BBtoSq(position.whiteBishop);
+    } else {
+        squares = BBtoSq(position.blackBishop);
+    }
 
-void MoveGen::GenPsuedoRook(Position &position, Color color, vector<Move> &PsuedoLegalmoves) {}
+    for (auto &&square : squares) {
+        GenRay(position, color, square, 1, 1, PsuedoLegalmoves);
+        GenRay(position, color, square, 1, -1, PsuedoLegalmoves);
+        GenRay(position, color, square, -1, 1, PsuedoLegalmoves);
+        GenRay(position, color, square, -1, -1, PsuedoLegalmoves);
+    }
+}
+
+void MoveGen::GenPsuedoQueen(Position &position, Color color, vector<Move> &PsuedoLegalmoves) {
+    vector<int> squares;
+
+    if (color == WHITE) {
+        squares = BBtoSq(position.whiteQueen);
+    } else {
+        squares = BBtoSq(position.blackQueen);
+    }
+
+    for (auto &&square : squares) {
+        GenRay(position, color, square, 1, 1, PsuedoLegalmoves);
+        GenRay(position, color, square, 1, -1, PsuedoLegalmoves);
+        GenRay(position, color, square, -1, 1, PsuedoLegalmoves);
+        GenRay(position, color, square, -1, -1, PsuedoLegalmoves);
+        GenRay(position, color, square, 1, 0, PsuedoLegalmoves);
+        GenRay(position, color, square, -1, 0, PsuedoLegalmoves);
+        GenRay(position, color, square, 0, 1, PsuedoLegalmoves);
+        GenRay(position, color, square, 0, -1, PsuedoLegalmoves);
+    }
+}
+
+void MoveGen::GenPsuedoRook(Position &position, Color color, vector<Move> &PsuedoLegalmoves) {
+    vector<int> squares;
+
+    if (color == WHITE) {
+        squares = BBtoSq(position.whiteRook);
+    } else {
+        squares = BBtoSq(position.blackRook);
+    }
+
+    for (auto &&square : squares) {
+        GenRay(position, color, square, 1, 0, PsuedoLegalmoves);
+        GenRay(position, color, square, -1, 0, PsuedoLegalmoves);
+        GenRay(position, color, square, 0, 1, PsuedoLegalmoves);
+        GenRay(position, color, square, 0, -1, PsuedoLegalmoves);
+    }
+}

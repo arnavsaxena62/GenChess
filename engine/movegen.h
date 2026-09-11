@@ -16,4 +16,5 @@ class MoveGen {
     void GenPsuedoQueen(Position &position, Color color, vector<Move> &PsuedoLegalmoves);
     void GenPsuedoRook(Position &position, Color color, vector<Move> &PsuedoLegalmoves);
     void GenPsuedoKing(Position &position, Color color, vector<Move> &PsuedoLegalmoves);
+    void GenRay(Position &position, Color color, int square, int rankDirection, int fileDirection, vector<Move> &moves);
 };
