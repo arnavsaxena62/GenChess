@@ -4,4 +4,6 @@
 #include <cstdint>
 #include <vector>
 
-int main() { Position pos; }
+int main() { 
+    Position pos; 
+}

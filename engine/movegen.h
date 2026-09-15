@@ -17,4 +17,20 @@ class MoveGen {
     void GenPsuedoRook(Position &position, Color color, vector<Move> &PsuedoLegalmoves);
     void GenPsuedoKing(Position &position, Color color, vector<Move> &PsuedoLegalmoves);
     void GenRay(Position &position, Color color, int square, int rankDirection, int fileDirection, vector<Move> &moves);
+
+    void CheckCheck(Position &position, Color color);
+    void CheckPromotion(Position &position, Color color);
+    void ValidateMoves(vector<Move> &moves, Color color);
+    
+    vector<Move> GenerateMoves(Position &position, Color color){
+      vector<Move> result = {};
+
+      GenPsuedoBishop(position, color, result);
+      GenPsuedoKing(position, color, result);
+      GenPsuedoQueen(position, color, result);
+      GenPsuedoRook(position, color, result);
+      GenPsuedoPawn(position, color, result);
+      GenPsuedoKnight(position, color, result);
+      ValidateMoves(result, color);
+    }
 };
