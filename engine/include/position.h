@@ -60,6 +60,41 @@ class Position {
         blackKing = 0;
     }
 
+    Position(bool starting) {
+        whitePawn = 0;
+        whiteKnight = 0;
+        whiteRook = 0;
+        whiteBishop = 0;
+        whiteQueen = 0;
+        whiteKing = 0;
+
+        blackPawn = 0;
+        blackKnight = 0;
+        blackRook = 0;
+        blackBishop = 0;
+        blackQueen = 0;
+        blackKing = 0;
+
+        if (!starting)
+            return;
+
+        // White
+        whitePawn = 0x000000000000FF00ULL;
+        whiteRook = 0x0000000000000081ULL;
+        whiteKnight = 0x0000000000000042ULL;
+        whiteBishop = 0x0000000000000024ULL;
+        whiteQueen = 0x0000000000000008ULL;
+        whiteKing = 0x0000000000000010ULL;
+
+        // Black
+        blackPawn = 0x00FF000000000000ULL;
+        blackRook = 0x8100000000000000ULL;
+        blackKnight = 0x4200000000000000ULL;
+        blackBishop = 0x2400000000000000ULL;
+        blackQueen = 0x0800000000000000ULL;
+        blackKing = 0x1000000000000000ULL;
+    }
+
     Position(Position &position) {
         whitePawn = position.whitePawn;
         whiteKnight = position.whiteKnight;
