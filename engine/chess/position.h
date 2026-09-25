@@ -1,4 +1,5 @@
 #pragma once
+#include "utils.h"
 #include <cstdint>
 #include <iostream>
 using namespace std;
@@ -43,6 +44,37 @@ class Position {
     u64 blackQueen = 0;
     u64 blackKing = 0;
 
+    Position() {
+        whitePawn = 0;
+        whiteKnight = 0;
+        whiteRook = 0;
+        whiteBishop = 0;
+        whiteQueen = 0;
+        whiteKing = 0;
+
+        blackPawn = 0;
+        blackKnight = 0;
+        blackRook = 0;
+        blackBishop = 0;
+        blackQueen = 0;
+        blackKing = 0;
+    }
+
+    Position(Position &position) {
+        whitePawn = position.whitePawn;
+        whiteKnight = position.whiteKnight;
+        whiteRook = position.whiteRook;
+        whiteBishop = position.whiteBishop;
+        whiteQueen = position.whiteQueen;
+        whiteKing = position.whiteKing;
+        blackPawn = position.blackPawn;
+        blackKnight = position.blackKnight;
+        blackRook = position.blackRook;
+        blackBishop = position.blackBishop;
+        blackQueen = position.blackQueen;
+        blackKing = position.blackKing;
+    }
+
     u64 black() {
         return blackPawn | blackKnight | blackQueen | blackRook | blackBishop | blackKing;
     }
@@ -58,6 +90,51 @@ class Position {
             return white();
 
         return black();
+    }
+
+    void makeMove(Move move) {
+        u64 pieceBB = InttoBB(move.from);
+        u64 targetBB = InttoBB(move.to);
+
+        Color movingColor = (pieceBB & white()) ? WHITE : BLACK;
+
+        if (movingColor == WHITE) {
+            u64 *whiteBBs[6] = {&whitePawn,   &whiteKnight, &whiteRook,
+                                &whiteBishop, &whiteQueen,  &whiteKing};
+            for (auto bb : whiteBBs) {
+                if (*bb & pieceBB) {
+                    *bb &= ~pieceBB; // remove from source
+                    *bb |= targetBB; // place on target
+                    break;
+                }
+            }
+
+            u64 capturedBB = targetBB & black();
+            blackPawn &= ~capturedBB;
+            blackKnight &= ~capturedBB;
+            blackRook &= ~capturedBB;
+            blackBishop &= ~capturedBB;
+            blackQueen &= ~capturedBB;
+            blackKing &= ~capturedBB;
+        } else {
+            u64 *blackBBs[6] = {&blackPawn,   &blackKnight, &blackRook,
+                                &blackBishop, &blackQueen,  &blackKing};
+            for (auto bb : blackBBs) {
+                if (*bb & pieceBB) {
+                    *bb &= ~pieceBB;
+                    *bb |= targetBB;
+                    break;
+                }
+            }
+
+            u64 capturedBB = targetBB & white();
+            whitePawn &= ~capturedBB;
+            whiteKnight &= ~capturedBB;
+            whiteRook &= ~capturedBB;
+            whiteBishop &= ~capturedBB;
+            whiteQueen &= ~capturedBB;
+            whiteKing &= ~capturedBB;
+        }
     }
 
     void display() {
