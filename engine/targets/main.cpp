@@ -13,6 +13,7 @@ int main() {
 
     test.whiteBishop = RankFiletoBB(2, 4);
     test.whiteKing = InttoBB(13);
+    test.blackRook = InttoBB(15);
 
     test.display();
 

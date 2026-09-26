@@ -7,6 +7,10 @@ using namespace std;
 
 #define u64 uint64_t
 
+enum Color : int { WHITE, BLACK };
+
+Color opposite(Color color);
+
 /**
  * ts returns array of occupied bits as int
  */

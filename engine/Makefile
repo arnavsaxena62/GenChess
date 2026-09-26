@@ -1,5 +1,5 @@
 CXX = g++
-CXXFLAGS = -Wall -Wextra -std=c++17 -Iinclude
+CXXFLAGS = -Wall -Wextra -std=c++17 -Iinclude -g
 
 ENGINE_SRC = src/movegen.cpp src/utils.cpp
 

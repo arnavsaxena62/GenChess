@@ -26,7 +26,7 @@ enum Square : uint64_t {
     H2 = 1ULL << 15,
 };
 
-enum Color : int { WHITE, BLACK };
+
 
 class Position {
   public:

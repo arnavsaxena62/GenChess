@@ -1,38 +1,33 @@
-#include <iostream>
-#include <vector>
-
+#include "bot.h"
 #include "move.h"
 #include "movegen.h"
 #include "position.h"
+#include <chrono>
+#include <iostream>
 using namespace std;
+using namespace std::chrono;
 
-vector<int> EvalFunc(Position* pos, Color color){
-}
+int main() {
+    Bot b1;
+    Bot b2;
 
-class Bot {
-  public:
-    vector<int> weights;
-
-    Move makeMove(Position *pos, Color color) {
-        int depth = 1;
-
-        Position starting = Position(true);
-        MoveGen handler;
-
-        auto moves = handler.GenerateMoves(starting, WHITE);
-        vector<pair<Move, int>> depth1;
-        for (auto &&i : moves) {
-            Position clone = starting;
-            clone.makeMove(i);
-            int eval= 0;
-            auto evalIndices = EvalFunc(pos, color);
-            for (int i = 0; i< evalIndices.size(); i++)
-            {
-                eval+=weights[i] * evalIndices[i];
-            }
-            depth1.emplace_back(pair(i, eval));
-        }
+    Position starting = Position(true);
+    cout << "---------------" << endl;
+    starting.display();
+    auto start = high_resolution_clock::now();
+    int i = 0;
+    while (i < 50) {
+        starting.makeMove(b1.findBestMove(starting, 3, WHITE));
+        i++;
+        // cout << "---------------" << endl;
+        // starting.display();
+        starting.makeMove(b2.findBestMove(starting, 3, BLACK));
+        // cout << "---------------" << endl;
+        i++;
+        // starting.display();
     }
-};
-
-int main() {}
+    auto stop = high_resolution_clock::now();
+    auto duration = duration_cast<microseconds>(stop - start);
+    cout << "Time taken: " << duration.count() << " microseconds";
+    starting.display();
+}

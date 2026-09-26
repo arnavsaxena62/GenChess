@@ -17,9 +17,15 @@ class MoveGen {
     void GenPsuedoQueen(Position &position, Color color, vector<Move> &PsuedoLegalmoves);
     void GenPsuedoRook(Position &position, Color color, vector<Move> &PsuedoLegalmoves);
     void GenPsuedoKing(Position &position, Color color, vector<Move> &PsuedoLegalmoves);
+
+
     void GenRay(Position &position, Color color, int square, int rankDirection, int fileDirection,
                 vector<Move> &moves);
+    bool RayHitsPiece(Position &position, int rank, int file, int rankDirection, int fileDirection,
+                      u64 targetPieces, u64 occupied);
 
+
+    bool IsSquareAttacked(Position &position, int square, Color attacker);
     bool CheckCheck(Position &position, Color color);
     bool CheckPromotion(Position &position, Color color);
     void ValidateMoves(Position &position, vector<Move> &moves, Color color);

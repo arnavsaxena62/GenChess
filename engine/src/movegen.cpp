@@ -93,8 +93,8 @@ void MoveGen::GenPsuedoPawn(Position &position, Color color, vector<Move> &Psued
 }
 
 void MoveGen::GenPsuedoKnight(Position &position, Color color, vector<Move> &PsuedoLegalmoves) {
-    vector<int> squares =
-        (color == WHITE ? occupancyBBtoInts(position.whiteKnight) : occupancyBBtoInts(position.blackKnight));
+    vector<int> squares = (color == WHITE ? occupancyBBtoInts(position.whiteKnight)
+                                          : occupancyBBtoInts(position.blackKnight));
 
     static const int KnightOffsets[8][2] = {{2, 1}, {2, -1}, {1, -2}, {-1, -2},
                                             {1, 2}, {-1, 2}, {-2, 1}, {-2, -1}};
@@ -115,8 +115,8 @@ void MoveGen::GenPsuedoKnight(Position &position, Color color, vector<Move> &Psu
 }
 
 void MoveGen::GenPsuedoKing(Position &position, Color color, vector<Move> &PsuedoLegalmoves) {
-    vector<int> squares =
-        (color == WHITE ? occupancyBBtoInts(position.whiteKing) : occupancyBBtoInts(position.blackKing));
+    vector<int> squares = (color == WHITE ? occupancyBBtoInts(position.whiteKing)
+                                          : occupancyBBtoInts(position.blackKing));
 
     static const int KingOffsets[8][2] = {{1, 1},  {1, 0},  {1, -1}, {0, 1},
                                           {0, -1}, {-1, 1}, {-1, 0}, {-1, -1}};
@@ -201,22 +201,108 @@ bool MoveGen::CheckPromotion(Position &position, Color color) {
         return (position.blackPawn & RANK_1) != 0;
     }
 }
+// bool MoveGen::CheckCheck(Position &position, Color color) {
+//     Color attacker = (color == WHITE) ? BLACK : WHITE;
+//     vector<Move> pseudoAttacks;
+//     GeneratePseudoMoves(position, attacker, pseudoAttacks);
+
+//     u64 kingBB = (color == WHITE) ? position.whiteKing : position.blackKing;
+//     vector<int> kingSquares = occupancyBBtoInts(kingBB);
+//     if (kingSquares.empty())
+//         return true;
+
+//     int kingSq = kingSquares[0];
+//     for (const auto &m : pseudoAttacks) {
+//         if (m.to == kingSq)
+//             return true;
+//     }
+//     return false;
+// }
+
+bool MoveGen::RayHitsPiece(Position &position, int rank, int file, int rankDirection,
+                           int fileDirection, u64 targetPieces, u64 occupied) {
+    int futureRank = rank + rankDirection;
+    int futureFile = file + fileDirection;
+
+    while (futureRank >= 0 && futureRank < 8 && futureFile >= 0 && futureFile < 8) {
+        u64 target = RankFiletoBB(futureRank, futureFile);
+
+        if (occupied & target) {
+            return (target & targetPieces) != 0;
+        }
+
+        futureRank += rankDirection;
+        futureFile += fileDirection;
+    }
+    return false;
+}
+
+bool MoveGen::IsSquareAttacked(Position &position, int square, Color attacker) {
+    int rank = square / 8;
+    int file = square % 8;
+
+    // Knights
+    static const int KnightOffsets[8][2] = {{2, 1}, {2, -1}, {1, -2}, {-1, -2},
+                                            {1, 2}, {-1, 2}, {-2, 1}, {-2, -1}};
+    u64 enemyKnight = (attacker == WHITE) ? position.whiteKnight : position.blackKnight;
+    for (auto &offset : KnightOffsets) {
+        int r = rank + offset[0];
+        int f = file + offset[1];
+        if (r >= 0 && r < 8 && f >= 0 && f < 8 && (enemyKnight & RankFiletoBB(r, f)))
+            return true;
+    }
+
+    // King (needed so kings can't move next to each other, also harmless here)
+    static const int KingOffsets[8][2] = {{1, 1},  {1, 0},  {1, -1}, {0, 1},
+                                          {0, -1}, {-1, 1}, {-1, 0}, {-1, -1}};
+    u64 enemyKing = (attacker == WHITE) ? position.whiteKing : position.blackKing;
+    for (auto &offset : KingOffsets) {
+        int r = rank + offset[0];
+        int f = file + offset[1];
+        if (r >= 0 && r < 8 && f >= 0 && f < 8 && (enemyKing & RankFiletoBB(r, f)))
+            return true;
+    }
+
+    // Pawns: look at the diagonal squares behind us, from attacker's perspective
+    u64 enemyPawn = (attacker == WHITE) ? position.whitePawn : position.blackPawn;
+    int pawnRank = (attacker == WHITE) ? rank - 1 : rank + 1;
+    if (pawnRank >= 0 && pawnRank < 8) {
+        if (file - 1 >= 0 && (enemyPawn & RankFiletoBB(pawnRank, file - 1)))
+            return true;
+        if (file + 1 < 8 && (enemyPawn & RankFiletoBB(pawnRank, file + 1)))
+            return true;
+    }
+
+    // Sliders
+    u64 enemyBishopQueen = (attacker == WHITE) ? (position.whiteBishop | position.whiteQueen)
+                                               : (position.blackBishop | position.blackQueen);
+    u64 enemyRookQueen = (attacker == WHITE) ? (position.whiteRook | position.whiteQueen)
+                                             : (position.blackRook | position.blackQueen);
+
+    static const int DiagDirs[4][2] = {{1, 1}, {1, -1}, {-1, 1}, {-1, -1}};
+    static const int StraightDirs[4][2] = {{1, 0}, {-1, 0}, {0, 1}, {0, -1}};
+    auto occupied = position.occupied();
+
+    for (auto &dir : DiagDirs)
+        if (RayHitsPiece(position, rank, file, dir[0], dir[1], enemyBishopQueen, occupied))
+            return true;
+
+    for (auto &dir : StraightDirs)
+        if (RayHitsPiece(position, rank, file, dir[0], dir[1], enemyRookQueen, occupied))
+            return true;
+
+    return false;
+}
+
 bool MoveGen::CheckCheck(Position &position, Color color) {
     Color attacker = (color == WHITE) ? BLACK : WHITE;
-    vector<Move> pseudoAttacks;
-    GeneratePseudoMoves(position, attacker, pseudoAttacks);
-
     u64 kingBB = (color == WHITE) ? position.whiteKing : position.blackKing;
     vector<int> kingSquares = occupancyBBtoInts(kingBB);
+
     if (kingSquares.empty())
         return true;
 
-    int kingSq = kingSquares[0];
-    for (const auto &m : pseudoAttacks) {
-        if (m.to == kingSq)
-            return true;
-    }
-    return false;
+    return IsSquareAttacked(position, kingSquares[0], attacker);
 }
 
 void MoveGen::ValidateMoves(Position &position, vector<Move> &moves, Color color) {
