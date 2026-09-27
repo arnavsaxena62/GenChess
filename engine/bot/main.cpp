@@ -11,7 +11,7 @@ int main() {
     Bot b1;
     Bot b2;
 
-        // starting.whiteBishop = RankFiletoBB(3, 5);
+    // starting.whiteBishop = RankFiletoBB(3, 5);
     // starting.whiteKing = InttoBB(13);
     // starting.blackKing = InttoBB(24);
     // starting.blackRook = InttoBB(15);
@@ -20,12 +20,12 @@ int main() {
         Move bestmove;
         pair<Move, int> result;
         Position starting(true);
-        for (int i = 0; i < 50; i++) {
-            result = b1.findBestMove(starting, 4, WHITE);
+        for (int i = 0; i < 100; i++) {
+            result = b1.findBestMove(starting, 3, WHITE);
             bestmove = result.first;
             starting.makeMove(bestmove);
 
-            result = b2.findBestMove(starting, 4, BLACK);
+            result = b2.findBestMove(starting, 3, BLACK);
             starting.makeMove(result.first);
         }
     }

@@ -1,12 +1,11 @@
 #pragma once
 #include "utils.h"
+#include <array>
 #include <cstdint>
 #include <iostream>
 using namespace std;
 
 #define u64 uint64_t
-
-
 
 enum Square : uint64_t {
     A1 = 1ULL << 0,
@@ -28,7 +27,15 @@ enum Square : uint64_t {
     H2 = 1ULL << 15,
 };
 
-
+// Everything unmakeMove needs to reverse a makeMove call. Piece indices match
+// the order used by whiteBBs()/blackBBs(): 0=Pawn 1=Knight 2=Rook 3=Bishop
+// 4=Queen 5=King.
+struct UndoInfo {
+    bool hadCapture = false;
+    Color capturedColor{};
+    int capturedPieceType = -1;
+    u64 capturedSquareBB = 0;
+};
 
 class Position {
   public:
@@ -97,7 +104,7 @@ class Position {
         blackKing = 0x1000000000000000ULL;
     }
 
-    Position(Position &position) {
+    Position(const Position &position) {
         whitePawn = position.whitePawn;
         whiteKnight = position.whiteKnight;
         whiteRook = position.whiteRook;
@@ -129,48 +136,33 @@ class Position {
         return black();
     }
 
-    void makeMove(Move move) {
-        u64 pieceBB = InttoBB(move.from);
-        u64 targetBB = InttoBB(move.to);
+    // Kept for anything still relying on the old copy-and-mutate flow.
+    // Prefer makeMoveWithUndo()/unmakeMove() in hot paths (search) to avoid
+    // cloning the whole Position at every node.
+    void makeMove(Move move) { makeMoveImpl(move); }
 
-        Color movingColor = (pieceBB & white()) ? WHITE : BLACK;
+    // Returns an UndoInfo describing whatever this move destroyed, so
+    // unmakeMove can restore it exactly. Use this + unmakeMove in search
+    // instead of Position next(pos); next.makeMove(move);
+    UndoInfo makeMoveWithUndo(Move move) { return makeMoveImpl(move); }
 
-        if (movingColor == WHITE) {
-            u64 *whiteBBs[6] = {&whitePawn,   &whiteKnight, &whiteRook,
-                                &whiteBishop, &whiteQueen,  &whiteKing};
-            for (auto bb : whiteBBs) {
-                if (*bb & pieceBB) {
-                    *bb &= ~pieceBB; // remove from source
-                    *bb |= targetBB; // place on target
-                    break;
-                }
+    void unmakeMove(Move move, const UndoInfo &undo) {
+        u64 pieceBB = InttoBB(move.to);
+        u64 originBB = InttoBB(move.from);
+        Color movedColor = (pieceBB & white()) ? WHITE : BLACK;
+
+        array<u64 *, 6> ownBBs = (movedColor == WHITE) ? whiteBBs() : blackBBs();
+        for (auto bb : ownBBs) {
+            if (*bb & pieceBB) {
+                *bb &= ~pieceBB;
+                *bb |= originBB;
+                break;
             }
+        }
 
-            u64 capturedBB = targetBB & black();
-            blackPawn &= ~capturedBB;
-            blackKnight &= ~capturedBB;
-            blackRook &= ~capturedBB;
-            blackBishop &= ~capturedBB;
-            blackQueen &= ~capturedBB;
-            blackKing &= ~capturedBB;
-        } else {
-            u64 *blackBBs[6] = {&blackPawn,   &blackKnight, &blackRook,
-                                &blackBishop, &blackQueen,  &blackKing};
-            for (auto bb : blackBBs) {
-                if (*bb & pieceBB) {
-                    *bb &= ~pieceBB;
-                    *bb |= targetBB;
-                    break;
-                }
-            }
-
-            u64 capturedBB = targetBB & white();
-            whitePawn &= ~capturedBB;
-            whiteKnight &= ~capturedBB;
-            whiteRook &= ~capturedBB;
-            whiteBishop &= ~capturedBB;
-            whiteQueen &= ~capturedBB;
-            whiteKing &= ~capturedBB;
+        if (undo.hadCapture) {
+            array<u64 *, 6> enemyBBs = (undo.capturedColor == WHITE) ? whiteBBs() : blackBBs();
+            *enemyBBs[undo.capturedPieceType] |= undo.capturedSquareBB;
         }
     }
 
@@ -217,5 +209,56 @@ class Position {
         }
 
         cout << "  a b c d e f g h\n";
+    }
+
+  private:
+    // Index order shared by makeMoveImpl/unmakeMove: 0=Pawn 1=Knight 2=Rook
+    // 3=Bishop 4=Queen 5=King. std::array (not a raw C array) so it can be
+    // returned by value and picked with a ternary.
+    array<u64 *, 6> whiteBBs() {
+        return {&whitePawn, &whiteKnight, &whiteRook, &whiteBishop, &whiteQueen, &whiteKing};
+    }
+
+    array<u64 *, 6> blackBBs() {
+        return {&blackPawn, &blackKnight, &blackRook, &blackBishop, &blackQueen, &blackKing};
+    }
+
+    UndoInfo makeMoveImpl(Move move) {
+        UndoInfo undo{};
+
+        u64 pieceBB = InttoBB(move.from);
+        u64 targetBB = InttoBB(move.to);
+
+        Color movingColor = (pieceBB & white()) ? WHITE : BLACK;
+
+        array<u64 *, 6> ownBBs = (movingColor == WHITE) ? whiteBBs() : blackBBs();
+        array<u64 *, 6> enemyBBs = (movingColor == WHITE) ? blackBBs() : whiteBBs();
+
+        for (auto bb : ownBBs) {
+            if (*bb & pieceBB) {
+                *bb &= ~pieceBB; // remove from source
+                *bb |= targetBB; // place on target
+                break;
+            }
+        }
+
+        u64 enemyOccupied = (movingColor == WHITE) ? black() : white();
+        u64 capturedBB = targetBB & enemyOccupied;
+
+        if (capturedBB) {
+            undo.hadCapture = true;
+            undo.capturedColor = (movingColor == WHITE) ? BLACK : WHITE;
+            undo.capturedSquareBB = capturedBB;
+
+            for (int i = 0; i < 6; i++) {
+                if (*enemyBBs[i] & capturedBB) {
+                    undo.capturedPieceType = i;
+                    *enemyBBs[i] &= ~capturedBB;
+                    break;
+                }
+            }
+        }
+
+        return undo;
     }
 };

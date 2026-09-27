@@ -366,9 +366,6 @@ u64 MoveGen::ComputePinnedPieces(Position &position, Color color) {
 }
 
 void MoveGen::ValidateMoves(Position &position, vector<Move> &moves, Color color) {
-    vector<Move> validMoves;
-    validMoves.reserve(moves.size());
-
     u64 kingBB = (color == WHITE) ? position.whiteKing : position.blackKing;
     int kingSquare = kingBB ? __builtin_ctzll(kingBB) : -1;
 
@@ -381,22 +378,30 @@ void MoveGen::ValidateMoves(Position &position, vector<Move> &moves, Color color
     // So we only pay for the expensive clone+re-check path when the move
     // could plausibly be illegal: king moves, pinned-piece moves, or any
     // move at all while already in check.
-    for (const auto &move : moves) {
+    //
+    // Filtered in place (erase-remove style) instead of building a second
+    // `validMoves` vector: this used to be a separate allocation on top of
+    // the one GenerateMoves already made for pseudo-legal moves, doubling
+    // the heap traffic at every node for no reason.
+    size_t writeIdx = 0;
+    for (size_t readIdx = 0; readIdx < moves.size(); readIdx++) {
+        Move move = moves[readIdx];
         bool mustFullyValidate =
             inCheck || move.from == kingSquare || (pinned & InttoBB(move.from));
 
+        bool legal;
         if (!mustFullyValidate) {
-            validMoves.push_back(move);
-            continue;
+            legal = true;
+        } else {
+            Position cloned(position);
+            cloned.makeMove(move);
+            legal = !CheckCheck(cloned, color);
         }
 
-        Position cloned(position);
-        cloned.makeMove(move);
-
-        if (!CheckCheck(cloned, color)) {
-            validMoves.push_back(move);
+        if (legal) {
+            moves[writeIdx++] = move;
         }
     }
 
-    moves = std::move(validMoves);
+    moves.resize(writeIdx);
 }

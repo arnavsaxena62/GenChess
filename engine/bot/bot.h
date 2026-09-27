@@ -55,10 +55,8 @@ class Bot {
         return FinalEval;
     }
 
-    // pos taken by reference: the caller already made a Position copy (`next`)
-    // to hand off the moved-into position, so copying it *again* on the way
-    // into search()/findBestMove() was a second, unnecessary full-position
-    // copy at every single node.
+    // pos taken by reference and mutated in place via makeMoveWithUndo/
+    // unmakeMove — no Position clone at all now, at any depth.
     pair<Move, int> findBestMove(Position &pos, int depth, Color side) {
         int alpha = -INF;
         int beta = INF;
