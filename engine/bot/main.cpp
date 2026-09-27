@@ -11,23 +11,25 @@ int main() {
     Bot b1;
     Bot b2;
 
-    Position starting = Position(true);
-    cout << "---------------" << endl;
-    starting.display();
+        // starting.whiteBishop = RankFiletoBB(3, 5);
+    // starting.whiteKing = InttoBB(13);
+    // starting.blackKing = InttoBB(24);
+    // starting.blackRook = InttoBB(15);
     auto start = high_resolution_clock::now();
-    int i = 0;
-    while (i < 50) {
-        starting.makeMove(b1.findBestMove(starting, 3, WHITE));
-        i++;
-        // cout << "---------------" << endl;
-        // starting.display();
-        starting.makeMove(b2.findBestMove(starting, 3, BLACK));
-        // cout << "---------------" << endl;
-        i++;
-        // starting.display();
+    for (int j = 0; j < 100; j++) {
+        Move bestmove;
+        pair<Move, int> result;
+        Position starting(true);
+        for (int i = 0; i < 50; i++) {
+            result = b1.findBestMove(starting, 3, WHITE);
+            bestmove = result.first;
+            starting.makeMove(bestmove);
+
+            result = b2.findBestMove(starting, 3, BLACK);
+            starting.makeMove(result.first);
+        }
     }
-    auto stop = high_resolution_clock::now();
-    auto duration = duration_cast<microseconds>(stop - start);
+    auto end = high_resolution_clock::now();
+    auto duration = duration_cast<microseconds>(end - start);
     cout << "Time taken: " << duration.count() << " microseconds";
-    starting.display();
 }

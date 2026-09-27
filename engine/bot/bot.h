@@ -9,7 +9,23 @@ using namespace std;
 const int INF = 1000000000;
 
 vector<int> EvalFunc(Position &pos, Color color) {
-    return vector<int>{random() % 5, random() % 5, random() % 5, random() % 5};
+    // int whiteScore =
+    //     1 * __builtin_popcountll(pos.whitePawn) + 3 * __builtin_popcountll(pos.whiteKnight) +
+    //     3 * __builtin_popcountll(pos.whiteBishop) + 5 * __builtin_popcountll(pos.whiteRook) +
+    //     9 * __builtin_popcountll(pos.whiteQueen);
+
+    // int blackScore =
+    //     1 * __builtin_popcountll(pos.blackPawn) + 3 * __builtin_popcountll(pos.blackKnight) +
+    //     3 * __builtin_popcountll(pos.blackBishop) + 5 * __builtin_popcountll(pos.blackRook) +
+    //     9 * __builtin_popcountll(pos.blackQueen);
+
+    // int score = whiteScore - blackScore;    
+
+    // MoveGen mg;
+    // int moves = mg.GenerateMoves(pos, color).size();
+    // return vector<int> {color == WHITE ? score : -score, moves};
+
+    return vector<int>{random()%5,random()%5,random()%5,random()%5};
 }
 
 class Bot {
@@ -32,18 +48,19 @@ class Bot {
         return FinalEval;
     }
 
-    Move findBestMove(Position pos, int depth, Color side) {
+    pair<Move, int> findBestMove(Position pos, int depth, Color side) {
         int alpha = -INF;
         int beta = INF;
 
         Move bestMove{};
+        int nodes;
 
         MoveGen handler;
         for (Move move : handler.GenerateMoves(pos, side)) {
             Position next = pos;
             next.makeMove(move);
 
-            int score = -search(next, depth - 1, opposite(side), -beta, -alpha);
+            int score = -search(next, depth - 1, opposite(side), -beta, -alpha, nodes);
 
             if (score > alpha) {
                 alpha = score;
@@ -51,14 +68,16 @@ class Bot {
             }
         }
 
-        return bestMove;
+        return pair<Move, int>{bestMove, nodes};
     }
 
-    int search(Position pos, int depth, Color side, int alpha, int beta) {
+    int search(Position pos, int depth, Color side, int alpha, int beta, int nodes) {
         if (depth == 0)
             return evaluationWithWeights(pos, side);
 
         int best = -INF;
+
+        nodes++;
 
         MoveGen handler;
         vector<Move> moves = handler.GenerateMoves(pos, side);
@@ -67,7 +86,7 @@ class Bot {
             Position next = pos;
             next.makeMove(move);
 
-            int score = -search(next, depth - 1, opposite(side), -beta, -alpha);
+            int score = -search(next, depth - 1, opposite(side), -beta, -alpha, nodes);
 
             best = max(best, score);
             alpha = max(alpha, score);
