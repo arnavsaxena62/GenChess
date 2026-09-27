@@ -6,6 +6,8 @@ using namespace std;
 
 #define u64 uint64_t
 
+
+
 enum Square : uint64_t {
     A1 = 1ULL << 0,
     B1 = 1ULL << 1,

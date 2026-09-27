@@ -1,14 +1,20 @@
+#pragma once
+
+#include <array>
 #include <iostream>
+#include <random>
 #include <vector>
 
 #include "move.h"
 #include "movegen.h"
 #include "position.h"
-#include <random>
+
 using namespace std;
 const int INF = 1000000000;
 
-vector<int> EvalFunc(Position &pos, Color color) {
+constexpr int NUM_EVAL_TERMS = 4;
+
+array<int, NUM_EVAL_TERMS> EvalFunc(Position &pos, Color color) {
     // int whiteScore =
     //     1 * __builtin_popcountll(pos.whitePawn) + 3 * __builtin_popcountll(pos.whiteKnight) +
     //     3 * __builtin_popcountll(pos.whiteBishop) + 5 * __builtin_popcountll(pos.whiteRook) +
@@ -19,45 +25,49 @@ vector<int> EvalFunc(Position &pos, Color color) {
     //     3 * __builtin_popcountll(pos.blackBishop) + 5 * __builtin_popcountll(pos.blackRook) +
     //     9 * __builtin_popcountll(pos.blackQueen);
 
-    // int score = whiteScore - blackScore;    
+    // int score = whiteScore - blackScore;
 
     // MoveGen mg;
     // int moves = mg.GenerateMoves(pos, color).size();
-    // return vector<int> {color == WHITE ? score : -score, moves};
+    // return array<int, NUM_EVAL_TERMS> {color == WHITE ? score : -score, moves};
 
-    return vector<int>{random()%5,random()%5,random()%5,random()%5};
+    return array<int, NUM_EVAL_TERMS>{int(random() % 5), int(random() % 5), int(random() % 5), int(random() % 5)};
 }
 
 class Bot {
   public:
-    vector<int> weights = {};
+    array<int, NUM_EVAL_TERMS> weights{};
+    MoveGen handler; // stateless, but only built once now instead of once per node
 
     Bot() {
-        for (int i = 0; i < 4; i++) {
-            weights.emplace_back(random() % 5);
+        for (auto &w : weights) {
+            w = random() % 5;
         }
     }
 
     int evaluationWithWeights(Position &pos, Color color) {
         auto EvalIndices = EvalFunc(pos, color);
         int FinalEval = 0;
-        for (int i = 0; i < EvalIndices.size(); i++) {
-            FinalEval = FinalEval + EvalIndices[i] * weights[i];
+        for (int i = 0; i < NUM_EVAL_TERMS; i++) {
+            FinalEval += EvalIndices[i] * weights[i];
         }
 
         return FinalEval;
     }
 
-    pair<Move, int> findBestMove(Position pos, int depth, Color side) {
+    // pos taken by reference: the caller already made a Position copy (`next`)
+    // to hand off the moved-into position, so copying it *again* on the way
+    // into search()/findBestMove() was a second, unnecessary full-position
+    // copy at every single node.
+    pair<Move, int> findBestMove(Position &pos, int depth, Color side) {
         int alpha = -INF;
         int beta = INF;
 
         Move bestMove{};
-        int nodes;
+        long long nodes = 0; // was uninitialized before — real bug, not just unused
 
-        MoveGen handler;
         for (Move move : handler.GenerateMoves(pos, side)) {
-            Position next = pos;
+            Position next(pos);
             next.makeMove(move);
 
             int score = -search(next, depth - 1, opposite(side), -beta, -alpha, nodes);
@@ -68,10 +78,13 @@ class Bot {
             }
         }
 
-        return pair<Move, int>{bestMove, nodes};
+        return pair<Move, int>{bestMove, (int)nodes};
     }
 
-    int search(Position pos, int depth, Color side, int alpha, int beta, int nodes) {
+    // nodes taken by reference: previously passed by value, so nodes++ only
+    // ever incremented a copy that was discarded when the call returned —
+    // the count you got back from findBestMove was meaningless.
+    int search(Position &pos, int depth, Color side, int alpha, int beta, long long &nodes) {
         if (depth == 0)
             return evaluationWithWeights(pos, side);
 
@@ -79,11 +92,10 @@ class Bot {
 
         nodes++;
 
-        MoveGen handler;
         vector<Move> moves = handler.GenerateMoves(pos, side);
 
         for (Move move : moves) {
-            Position next = pos;
+            Position next(pos);
             next.makeMove(move);
 
             int score = -search(next, depth - 1, opposite(side), -beta, -alpha, nodes);

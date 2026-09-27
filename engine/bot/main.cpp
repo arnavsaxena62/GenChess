@@ -21,11 +21,11 @@ int main() {
         pair<Move, int> result;
         Position starting(true);
         for (int i = 0; i < 50; i++) {
-            result = b1.findBestMove(starting, 3, WHITE);
+            result = b1.findBestMove(starting, 4, WHITE);
             bestmove = result.first;
             starting.makeMove(bestmove);
 
-            result = b2.findBestMove(starting, 3, BLACK);
+            result = b2.findBestMove(starting, 4, BLACK);
             starting.makeMove(result.first);
         }
     }
