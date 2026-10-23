@@ -2,6 +2,7 @@
 #include "move.h"
 #include "movegen.h"
 #include "position.h"
+#include "../evaluation.h"
 #include <chrono>
 #include <iostream>
 using namespace std;
@@ -31,5 +32,5 @@ int main() {
     }
     auto end = high_resolution_clock::now();
     auto duration = duration_cast<microseconds>(end - start);
-    cout << "Time taken: " << duration.count() << " microseconds";
+    cout << "Time taken: " << duration.count() << " microseconds\n";
 }

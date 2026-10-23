@@ -27,6 +27,8 @@ class MoveGen {
                       u64 targetPieces, u64 occupied);
 
     bool IsSquareAttacked(Position &position, int square, Color attacker);
+    u64 ComputeControlledSquares(Position &position, Color color);
+    u64 KingZone(int square); 
     bool CheckCheck(Position &position, Color color);
     bool CheckPromotion(Position &position, Color color);
 

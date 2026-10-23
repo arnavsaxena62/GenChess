@@ -47,6 +47,41 @@ const array<u64, 64> kingAttacks = [] {
 
 } // namespace
 
+u64 MoveGen::KingZone(int square) { return kingAttacks[square]; }
+
+namespace {
+
+inline u64 AttackRay(int square, int rankDirection, int fileDirection, u64 occupied) {
+    int rank = square / 8;
+    int file = square % 8;
+
+    int futureRank = rank + rankDirection;
+    int futureFile = file + fileDirection;
+
+    u64 attacks = 0;
+
+    while (futureRank >= 0 && futureRank < 8 &&
+           futureFile >= 0 && futureFile < 8)
+    {
+        u64 target = RankFiletoBB(futureRank, futureFile);
+
+        // This square is controlled, including if it contains
+        // a friendly piece.
+        attacks |= target;
+
+        // First occupied square blocks the ray.
+        if (occupied & target)
+            break;
+
+        futureRank += rankDirection;
+        futureFile += fileDirection;
+    }
+
+    return attacks;
+}
+
+} // namespace
+
 void MoveGen::GenRay(Position &position, Color color, int square, int rankDirection,
                      int fileDirection, u64 ownBB, u64 enemyBB, vector<Move> &moves) {
 
@@ -295,6 +330,139 @@ bool MoveGen::IsSquareAttacked(Position &position, int square, Color attacker) {
             return true;
 
     return false;
+}
+
+u64 MoveGen::ComputeControlledSquares(Position &position, Color color) {
+    constexpr u64 FILE_A = 0x0101010101010101ULL;
+    constexpr u64 FILE_H = 0x8080808080808080ULL;
+
+    u64 pawns = (color == WHITE) ? position.whitePawn : position.blackPawn;
+    u64 knights = (color == WHITE) ? position.whiteKnight : position.blackKnight;
+    u64 bishops = (color == WHITE) ? position.whiteBishop : position.blackBishop;
+    u64 rooks = (color == WHITE) ? position.whiteRook : position.blackRook;
+    u64 queens = (color == WHITE) ? position.whiteQueen : position.blackQueen;
+    u64 king = (color == WHITE) ? position.whiteKing : position.blackKing;
+    
+    u64 occupied = position.occupied();
+    u64 controlled = 0;
+    // ------------------------------------------------------------
+    // Pawns
+    // ------------------------------------------------------------
+    //
+    // Board mapping:
+    // a1 = bit 0
+    // a2 = bit 8
+    // ...
+    //
+    // White attacks toward higher bit indices.
+    // Black attacks toward lower bit indices.
+    //
+    // File masks prevent A/H-file wraparound.
+    //
+
+    if (color == WHITE) {
+        controlled |= ((pawns & ~FILE_A) << 7);
+        controlled |= ((pawns & ~FILE_H) << 9);
+    } else {
+        controlled |= ((pawns & ~FILE_H) >> 7);
+        controlled |= ((pawns & ~FILE_A) >> 9);
+    }
+
+    // ------------------------------------------------------------
+    // Knights
+    // ------------------------------------------------------------
+
+    while (knights) {
+        int square = __builtin_ctzll(knights);
+        knights &= knights - 1;
+
+        controlled |= knightAttacks[square];
+    }
+
+    // ------------------------------------------------------------
+    // King
+    // ------------------------------------------------------------
+
+    while (king) {
+        int square = __builtin_ctzll(king);
+        king &= king - 1;
+
+        controlled |= kingAttacks[square];
+    }
+
+    // ------------------------------------------------------------
+    // Sliding pieces
+    // ------------------------------------------------------------
+
+    static const int DiagDirs[4][2] = {
+        { 1,  1},
+        { 1, -1},
+        {-1,  1},
+        {-1, -1}
+    };
+
+    static const int StraightDirs[4][2] = {
+        { 1,  0},
+        {-1,  0},
+        { 0,  1},
+        { 0, -1}
+    };
+
+    // Bishops
+    while (bishops) {
+        int square = __builtin_ctzll(bishops);
+        bishops &= bishops - 1;
+
+        for (auto &dir : DiagDirs) {
+            controlled |= AttackRay(
+                square,
+                dir[0],
+                dir[1],
+                occupied
+            );
+        }
+    }
+
+    // Rooks
+    while (rooks) {
+        int square = __builtin_ctzll(rooks);
+        rooks &= rooks - 1;
+
+        for (auto &dir : StraightDirs) {
+            controlled |= AttackRay(
+                square,
+                dir[0],
+                dir[1],
+                occupied
+            );
+        }
+    }
+
+    // Queens
+    while (queens) {
+        int square = __builtin_ctzll(queens);
+        queens &= queens - 1;
+
+        for (auto &dir : DiagDirs) {
+            controlled |= AttackRay(
+                square,
+                dir[0],
+                dir[1],
+                occupied
+            );
+        }
+
+        for (auto &dir : StraightDirs){
+            controlled |= AttackRay(
+                square,
+                dir[0],
+                dir[1],
+                occupied
+            );
+        }
+    }
+
+    return controlled;
 }
 
 bool MoveGen::CheckCheck(Position &position, Color color) {

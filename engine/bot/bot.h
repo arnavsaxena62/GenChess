@@ -8,31 +8,12 @@
 #include "move.h"
 #include "movegen.h"
 #include "position.h"
+#include "evaluation.h"
 
 using namespace std;
 const int INF = 1000000000;
 
-constexpr int NUM_EVAL_TERMS = 4;
-
-array<int, NUM_EVAL_TERMS> EvalFunc(Position &pos, Color color) {
-    // int whiteScore =
-    //     1 * __builtin_popcountll(pos.whitePawn) + 3 * __builtin_popcountll(pos.whiteKnight) +
-    //     3 * __builtin_popcountll(pos.whiteBishop) + 5 * __builtin_popcountll(pos.whiteRook) +
-    //     9 * __builtin_popcountll(pos.whiteQueen);
-
-    // int blackScore =
-    //     1 * __builtin_popcountll(pos.blackPawn) + 3 * __builtin_popcountll(pos.blackKnight) +
-    //     3 * __builtin_popcountll(pos.blackBishop) + 5 * __builtin_popcountll(pos.blackRook) +
-    //     9 * __builtin_popcountll(pos.blackQueen);
-
-    // int score = whiteScore - blackScore;
-
-    // MoveGen mg;
-    // int moves = mg.GenerateMoves(pos, color).size();
-    // return array<int, NUM_EVAL_TERMS> {color == WHITE ? score : -score, moves};
-
-    return array<int, NUM_EVAL_TERMS>{int(random() % 5), int(random() % 5), int(random() % 5), int(random() % 5)};
-}
+constexpr int NUM_EVAL_TERMS = 5;
 
 class Bot {
   public:
@@ -46,13 +27,15 @@ class Bot {
     }
 
     int evaluationWithWeights(Position &pos, Color color) {
-        auto EvalIndices = EvalFunc(pos, color);
-        int FinalEval = 0;
-        for (int i = 0; i < NUM_EVAL_TERMS; i++) {
-            FinalEval += EvalIndices[i] * weights[i];
-        }
+        evaluationWeights evalWeights{
+            static_cast<double>(weights[0]), // material
+            static_cast<double>(weights[1]), // pawn structure
+            static_cast<double>(weights[2]), // mobility
+            static_cast<double>(weights[3]), // king safety
+            static_cast<double>(weights[4])  // controlled squares
+        };
 
-        return FinalEval;
+        return static_cast<int>(evaluate(pos, evalWeights, color));
     }
 
     // pos taken by reference and mutated in place via makeMoveWithUndo/

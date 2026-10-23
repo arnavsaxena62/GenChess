@@ -119,17 +119,17 @@ class Position {
         blackKing = position.blackKing;
     }
 
-    u64 black() {
+    u64 const black() {
         return blackPawn | blackKnight | blackQueen | blackRook | blackBishop | blackKing;
     }
 
-    u64 white() {
+    u64 const white() {
         return whitePawn | whiteKnight | whiteQueen | whiteRook | whiteBishop | whiteKing;
     }
 
-    u64 occupied() { return black() | white(); }
+    u64 const occupied() { return black() | white(); }
 
-    u64 own(Color c) {
+    u64 const own(Color c) {
         if (c == WHITE)
             return white();
 
