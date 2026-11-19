@@ -17,7 +17,7 @@ constexpr int NUM_EVAL_TERMS = 5;
 
 class Bot {
   public:
-    array<int, NUM_EVAL_TERMS> weights{};
+    array<double, NUM_EVAL_TERMS> weights{};
     MoveGen handler; // stateless, but only built once now instead of once per node
 
     Bot() {
@@ -26,7 +26,7 @@ class Bot {
         }
     }
 
-    Bot(vector<int> inpweights) {
+    Bot(vector<double> inpweights) {
         for (int i = 0; i < NUM_EVAL_TERMS; i++) {
             weights[i] = inpweights[i];
         }
@@ -100,7 +100,7 @@ class Bot {
 };
 
 
-int won(const vector<int> &vb1, const vector<int> &vb2) {
+int won(const vector<double> &vb1, const vector<double> &vb2) {
     Bot b1(vb1);
     Bot b2(vb2);
 
@@ -127,7 +127,7 @@ int won(const vector<int> &vb1, const vector<int> &vb2) {
     return 2;
 }
 
-vector<tuple<int, int, int>> batchMatches(const vector<vector<int>> &bots) {
+vector<tuple<int, int, int>> batchMatches(const vector<vector<double>> &bots) {
     vector<tuple<int, int, int>> results;
 
     for (size_t i = 0; i < bots.size(); ++i) {
