@@ -5,10 +5,10 @@
 #include <random>
 #include <vector>
 
+#include "evaluation.h"
 #include "move.h"
 #include "movegen.h"
 #include "position.h"
-#include "evaluation.h"
 
 using namespace std;
 const int INF = 1000000000;
@@ -23,6 +23,12 @@ class Bot {
     Bot() {
         for (auto &w : weights) {
             w = random() % 5;
+        }
+    }
+
+    Bot(vector<int> inpweights) {
+        for (int i = 0; i < NUM_EVAL_TERMS; i++) {
+            weights[i] = inpweights[i];
         }
     }
 
@@ -92,3 +98,49 @@ class Bot {
         return best;
     }
 };
+
+
+int won(const vector<int> &vb1, const vector<int> &vb2) {
+    Bot b1(vb1);
+    Bot b2(vb2);
+
+    Move bestmove;
+    pair<Move, int> result;
+    Position starting(true);
+
+    for (int i = 0; i < 100; i++) {
+        try {
+            result = b1.findBestMove(starting, 3, WHITE);
+            starting.makeMove(result.first);
+        } catch (const std::exception &) {
+            return 0;
+        }
+
+        try {
+            result = b2.findBestMove(starting, 3, BLACK);
+            starting.makeMove(result.first);
+        } catch (const std::exception &) {
+            return 1;
+        }
+    }
+
+    return 2;
+}
+
+vector<tuple<int, int, int>> batchMatches(const vector<vector<int>> &bots) {
+    vector<tuple<int, int, int>> results;
+
+    for (size_t i = 0; i < bots.size(); ++i) {
+        for (size_t j = i + 1; j < bots.size(); ++j) {
+            int result = won(bots[i], bots[j]);
+
+            // Stores: (firstBotIndex, secondBotIndex, result)
+            // result == 0: bot i wins
+            // result == 1: bot j wins
+            // result == 2: draw
+            results.emplace_back(static_cast<int>(i), static_cast<int>(j), result);
+        }
+    }
+
+    return results;
+}

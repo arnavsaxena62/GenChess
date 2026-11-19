@@ -4,10 +4,20 @@
 #include "position.h"
 #include "utils.h"
 #include <cstdint>
+#include <exception>
 #include <vector>
-
 using namespace std;
+
 #define u64 uint64_t
+
+class GameEnd : public exception {
+  private:
+    string message;
+
+  public:
+    GameEnd(const char *msg) : message(msg) {}
+    const char *what() const noexcept { return message.c_str(); }
+};
 
 class MoveGen {
   public:
@@ -28,7 +38,7 @@ class MoveGen {
 
     bool IsSquareAttacked(Position &position, int square, Color attacker);
     u64 ComputeControlledSquares(Position &position, Color color);
-    u64 KingZone(int square); 
+    u64 KingZone(int square);
     bool CheckCheck(Position &position, Color color);
     bool CheckPromotion(Position &position, Color color);
 
@@ -50,6 +60,10 @@ class MoveGen {
         GenPsuedoPawn(position, color, result);
         GenPsuedoKnight(position, color, result);
         ValidateMoves(position, result, color);
+
+        if (result.size() == 0) {
+            throw GameEnd("game");
+        }
 
         return result;
     }

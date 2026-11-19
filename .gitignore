@@ -1,0 +1,6 @@
+*.out
+perf*
+*.backup
+*.so
+build
+.vscode
