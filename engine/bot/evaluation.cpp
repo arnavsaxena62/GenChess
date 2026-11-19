@@ -163,8 +163,7 @@ double controlledSquaresScore(u64 whiteControlled, u64 blackControlled) {
     return static_cast<double>(__builtin_popcountll(whiteControlled) - __builtin_popcountll(blackControlled));
 }
 
-double evaluate(Position& position, const evaluationWeights& weights, Color side) {
-    evalCount++;
+double evaluate(Position& position, const evaluationWeights& weights, Color side) {    
 
     double score = 0.0;
 

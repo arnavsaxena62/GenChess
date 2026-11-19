@@ -8,8 +8,8 @@ ENGINE_SRC = src/movegen.cpp src/utils.cpp
 
 all: bot targets
 
-bot: bot/main.cpp evaluation.cpp $(ENGINE_SRC)
-	$(CXX) $(CXXFLAGS) bot/main.cpp evaluation.cpp $(ENGINE_SRC) -o bot/bot.out
+bot: bot/main.cpp bot/evaluation.cpp $(ENGINE_SRC)
+	$(CXX) $(CXXFLAGS) bot/main.cpp bot/evaluation.cpp $(ENGINE_SRC) -o bot/bot.out
 
 targets: targets/main.cpp $(ENGINE_SRC)
 	$(CXX) $(CXXFLAGS) targets/main.cpp $(ENGINE_SRC) -o targets/targets.out

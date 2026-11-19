@@ -136,14 +136,8 @@ class Position {
         return black();
     }
 
-    // Kept for anything still relying on the old copy-and-mutate flow.
-    // Prefer makeMoveWithUndo()/unmakeMove() in hot paths (search) to avoid
-    // cloning the whole Position at every node.
     void makeMove(Move move) { makeMoveImpl(move); }
 
-    // Returns an UndoInfo describing whatever this move destroyed, so
-    // unmakeMove can restore it exactly. Use this + unmakeMove in search
-    // instead of Position next(pos); next.makeMove(move);
     UndoInfo makeMoveWithUndo(Move move) { return makeMoveImpl(move); }
 
     void unmakeMove(Move move, const UndoInfo &undo) {
@@ -212,9 +206,7 @@ class Position {
     }
 
   private:
-    // Index order shared by makeMoveImpl/unmakeMove: 0=Pawn 1=Knight 2=Rook
-    // 3=Bishop 4=Queen 5=King. std::array (not a raw C array) so it can be
-    // returned by value and picked with a ternary.
+ 
     array<u64 *, 6> whiteBBs() {
         return {&whitePawn, &whiteKnight, &whiteRook, &whiteBishop, &whiteQueen, &whiteKing};
     }
