@@ -99,7 +99,6 @@ class Bot {
     }
 };
 
-
 int won(const vector<double> &vb1, const vector<double> &vb2) {
     Bot b1(vb1);
     Bot b2(vb2);
@@ -108,7 +107,7 @@ int won(const vector<double> &vb1, const vector<double> &vb2) {
     pair<Move, int> result;
     Position starting(true);
 
-    for (int i = 0; i < 100; i++) {
+    for (int i = 0; i < 30; i++) {
         try {
             result = b1.findBestMove(starting, 3, WHITE);
             starting.makeMove(result.first);
@@ -130,17 +129,43 @@ int won(const vector<double> &vb1, const vector<double> &vb2) {
 vector<tuple<int, int, int>> batchMatches(const vector<vector<double>> &bots) {
     vector<tuple<int, int, int>> results;
 
-    for (size_t i = 0; i < bots.size(); ++i) {
-        for (size_t j = i + 1; j < bots.size(); ++j) {
+    const size_t botCount = bots.size();
+    const size_t totalGames = botCount * (botCount - 1) / 2;
+    size_t completedGames = 0;
+
+    results.reserve(totalGames);
+
+    for (size_t i = 0; i < botCount; ++i) {
+        for (size_t j = i + 1; j < botCount; ++j) {
             int result = won(bots[i], bots[j]);
 
-            // Stores: (firstBotIndex, secondBotIndex, result)
-            // result == 0: bot i wins
-            // result == 1: bot j wins
-            // result == 2: draw
             results.emplace_back(static_cast<int>(i), static_cast<int>(j), result);
+
+            ++completedGames;
+
+            cout << "\rGames completed: " << completedGames << " / " << totalGames
+                      << std::flush;
         }
     }
 
+    cout << '\n';
+
     return results;
+}
+
+vector<tuple<int, int, int>> batchMatchesDefined(const vector<vector<double>> &bots,
+                                                 const vector<tuple<int, int>> matches) {
+
+    vector<tuple<int, int, int>> result;
+    int completedGames = 0;
+    int totalGames = matches.size();
+    int gameResult;
+    for (auto &&i : matches) {
+        gameResult = won(bots[get<0>(i)], bots[get<1>(i)]);
+        result.emplace_back(get<0>(i), get<1>(i), gameResult);
+        completedGames++;
+        cout << "\rGames completed: " << completedGames << " / " << totalGames << flush;
+    }
+    cout << endl;
+    return result;
 }

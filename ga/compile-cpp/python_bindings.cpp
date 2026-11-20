@@ -16,6 +16,14 @@ PYBIND11_MODULE(chessbots, m) {
     );
 
     m.def(
+        "batch_matches_defined",
+        &batchMatchesDefined,
+        py::arg("bots"),
+        py::arg("matches"),
+        "run matches between supplied indexes"
+    );
+
+    m.def(
         "won",
         &won,
         py::arg("bot1"),
