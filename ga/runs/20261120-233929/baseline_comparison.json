@@ -1,0 +1,83 @@
+{
+  "champion_id": 0,
+  "champion_weights": [
+    1.2788535969157675,
+    0.05002151044533387,
+    0.5500586367382385,
+    0.4464214762976455,
+    1.4729424283280248
+  ],
+  "baseline_weights": [
+    1.0,
+    1.0,
+    1.0,
+    1.0,
+    1.0
+  ],
+  "games": 10,
+  "champion_score": 0.0,
+  "baseline_score": 10.0,
+  "champion_score_percent": 0.0,
+  "matches": [
+    {
+      "game": 1,
+      "champion_colour": "white",
+      "result_code": 1,
+      "champion_score": 0.0
+    },
+    {
+      "game": 2,
+      "champion_colour": "black",
+      "result_code": 0,
+      "champion_score": 0.0
+    },
+    {
+      "game": 3,
+      "champion_colour": "white",
+      "result_code": 1,
+      "champion_score": 0.0
+    },
+    {
+      "game": 4,
+      "champion_colour": "black",
+      "result_code": 0,
+      "champion_score": 0.0
+    },
+    {
+      "game": 5,
+      "champion_colour": "white",
+      "result_code": 1,
+      "champion_score": 0.0
+    },
+    {
+      "game": 6,
+      "champion_colour": "black",
+      "result_code": 0,
+      "champion_score": 0.0
+    },
+    {
+      "game": 7,
+      "champion_colour": "white",
+      "result_code": 1,
+      "champion_score": 0.0
+    },
+    {
+      "game": 8,
+      "champion_colour": "black",
+      "result_code": 0,
+      "champion_score": 0.0
+    },
+    {
+      "game": 9,
+      "champion_colour": "white",
+      "result_code": 1,
+      "champion_score": 0.0
+    },
+    {
+      "game": 10,
+      "champion_colour": "black",
+      "result_code": 0,
+      "champion_score": 0.0
+    }
+  ]
+}

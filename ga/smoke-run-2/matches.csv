@@ -1,0 +1,2 @@
+generation,round_number,white_id,black_id,result,white_elo_before,black_elo_before,white_elo_after,black_elo_after
+1,1,0,1,draw,1200.0,1200.0,1200.0,1200.0
