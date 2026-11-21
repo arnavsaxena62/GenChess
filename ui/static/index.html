@@ -1,0 +1,18 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>GenChess | Play the evolved bot</title>
+  <link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+  <main>
+    <header><p class="eyebrow">GENETIC CHESS ENGINE</p><h1>Challenge the best evolved bot.</h1><p id="subtitle">Loading the strongest logged chromosome…</p></header>
+    <section class="dashboard"><div><span>Champion Elo</span><strong id="elo">—</strong></div><div><span>Source</span><strong id="source">—</strong></div><div class="weights"><span>Evolved weights</span><code id="weights">—</code></div></section>
+    <section class="chart-card"><div class="chart-head"><h2>Best Elo by generation</h2><small>Each point is the top candidate in the champion's saved run.</small></div><svg id="chart" viewBox="0 0 620 150" role="img" aria-label="Elo over generations"></svg></section>
+    <section class="play"><div class="board-wrap"><div id="board" class="board" aria-label="Chess board"></div><p id="status" aria-live="polite">Choose a colour to begin.</p></div><aside><h2>Play a game</h2><p>The bot uses the strongest recorded five-weight chromosome. Select a piece, then a destination square.</p><div class="buttons"><button data-colour="white" class="primary">Play as White</button><button data-colour="black">Play as Black</button><button id="resign" class="resign" disabled>Resign</button><button id="rematch" disabled>Rematch</button></div><h3>Moves</h3><div id="moves" class="moves" aria-label="Move history"></div></aside></section>
+  </main>
+  <script src="/static/app.js"></script>
+</body>
+</html>
